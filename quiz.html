@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz για την Κακοποίηση Ζώων</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
+        .quiz-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); display: inline-block; margin-top: 20px; }
+        .question { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .answer { display: block; background: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; margin: 5px; cursor: pointer; transition: 0.3s; }
+        .answer:hover { background: #0056b3; }
+        .correct { background: green !important; }
+        .wrong { background: red !important; }
+        .scoreboard { margin-top: 20px; font-size: 18px; }
+        .timer { font-size: 18px; color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Quiz: Κακοποίηση Ζώων</h1>
+    <div class="quiz-container">
+        <div class="question" id="question"></div>
+        <div id="answers"></div>
+        <p class="timer">Χρόνος: <span id="time">10</span> δευτ.</p>
+    </div>
+    <div class="scoreboard">
+        <h2>Βαθμολογία Ομάδων</h2>
+        <p>Ομάδα 1: <span id="score1">0</span></p>
+        <p>Ομάδα 2: <span id="score2">0</span></p>
+    </div>
+    <h2>Σκανάρετε το QR Code για να συμμετάσχετε</h2>
+    <div id="qrcode"></div>
+    
+    <script>
+        const questions = [
+            { text: "Τι θεωρείται κακοποίηση ζώων;", answers: ["Μόνο η σωματική βία", "Η εγκατάλειψη, η κακομεταχείριση και η αδιαφορία", "Η εκπαίδευση ενός ζώου", "Μόνο η θανάτωση ζώου"], correct: 1 },
+            { text: "Ποιο από τα παρακάτω είναι παράνομο στην Ελλάδα;", answers: ["Η εγκατάλειψη ζώου", "Η στείρωση ζώου", "Η βόλτα με λουρί", "Το τάισμα αδέσποτων"], correct: 0 },
+            { text: "Ποιος είναι ένας τρόπος καταπολέμησης της κακοποίησης ζώων;", answers: ["Η αδιαφορία για όσα συμβαίνουν", "Η ενημέρωση και η καταγγελία περιστατικών", "Η αποφυγή επαφής με ζώα", "Η μεταχείριση των ζώων σαν αντικείμενα"], correct: 1 },
+            { text: "Τι πρέπει να κάνεις αν δεις ένα κακοποιημένο ζώο;", answers: ["Να το αγνοήσεις", "Να το βιντεοσκοπήσεις", "Να το αναφέρεις στις αρχές", "Να το μεταφέρεις σπίτι σου"], correct: 2 },
+            { text: "Ποια από τις παρακάτω πράξεις δεν είναι κακοποίηση;", answers: ["Η εγκατάλειψη ζώου", "Η στείρωση για την υγεία του ζώου", "Η παθητική παραμέληση", "Η εκτροφή για παράνομη πώληση"], correct: 1 },
+            { text: "Ποια είναι η ποινή για κακοποίηση ζώου στην Ελλάδα;", answers: ["Προειδοποίηση", "Πρόστιμο έως 50.000€ και φυλάκιση", "Καμία ποινή", "Μόνο πρόστιμο 100€"], correct: 1 },
+            { text: "Ποιος είναι ο βασικός σκοπός των φιλοζωικών οργανώσεων;", answers: ["Να κερδίζουν χρήματα", "Να προστατεύουν και να φροντίζουν τα ζώα", "Να πωλούν ζώα", "Να αποφεύγουν τη στείρωση"], correct: 1 }
+        ];
+        let currentQuestion = 0;
+        let scores = { team1: 0, team2: 0 };
+        let timeLeft = 10;
+        let timer;
+        
+        function startTimer() {
+            timeLeft = 10;
+            document.getElementById("time").textContent = timeLeft;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("time").textContent = timeLeft;
+                if (timeLeft === 0) {
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+        
+        function loadQuestion() {
+            clearInterval(timer);
+            startTimer();
+            document.getElementById("question").textContent = questions[currentQuestion].text;
+            let answersDiv = document.getElementById("answers");
+            answersDiv.innerHTML = "";
+            questions[currentQuestion].answers.forEach((answer, index) => {
+                let btn = document.createElement("button");
+                btn.className = "answer";
+                btn.textContent = answer;
+                btn.onclick = () => answerQuestion(index, btn);
+                answersDiv.appendChild(btn);
+            });
+        }
+        
+        function answerQuestion(selectedIndex, button) {
+            clearInterval(timer);
+            if (selectedIndex === questions[currentQuestion].correct) {
+                button.classList.add("correct");
+                scores.team1 += 10;
+                document.getElementById("score1").textContent = scores.team1;
+            } else {
+                button.classList.add("wrong");
+            }
+            setTimeout(nextQuestion, 1000);
+        }
+        
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById("quiz-container").innerHTML = `<h2>Το Quiz ολοκληρώθηκε!</h2><p>Τελικό σκορ: ${scores.team1}</p>`;
+            }
+        }
+        
+        loadQuestion();
+        new QRCode(document.getElementById("qrcode"), "https://yourquizlink.com");
+    </script>
+</body>
+</html>
